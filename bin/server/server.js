@@ -8,8 +8,8 @@ var express = require('express'),
 	os = require('os'),
 	ifaces = os.networkInterfaces(),
 	// osc is a thin layer on top of udp
-	sendSocket = dgram.createSocket('udp4'),
-	recieveSocket = dgram.createSocket('udp4'),
+	sendSocket = dgram.createSocket({type:"udp4",reuseAddr:true}),
+	receiveSocket = dgram.createSocket({type:"udp4",reuseAddr:true}),
 	SEND_PORT = 12345,
 	RECIEVE_PORT = 12346;
 
@@ -56,6 +56,8 @@ recieveSocket.on('message', function(message, remote){
 	var messageValues = getOSCMessage(message);
 	switch(messageValues.address){
 		case '/transmit/photo':
+			//twitter upload happens here. At the end of the process, send the message and file
+			// back to the main application
 			io.sockets.to(messageValues.id).emit('transmit photo', messageValues.filename);
 			break;
 		case '/photo/countdown':
