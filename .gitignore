@@ -1,0 +1,17 @@
+bin/ghettoMatrix
+bin/ghettoMatrix_debug
+bin/libs
+
+output/
+*.png
+*.wav
+*.gif
+*.jpg
+*.jpeg
+node_modules/
+api_config.js
+
+*.cbp
+*.layout
+*.workspace
+obj/
