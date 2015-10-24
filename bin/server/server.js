@@ -11,7 +11,10 @@ var express = require('express'),
 	sendSocket = dgram.createSocket({type:"udp4",reuseAddr:true}),
 	receiveSocket = dgram.createSocket({type:"udp4",reuseAddr:true}),
 	SEND_PORT = 12345,
-	RECIEVE_PORT = 12346;
+	RECIEVE_PORT = 12346,
+	Twitter = require('twitter'),
+	twitterCreds = require('./credentials'),
+	twitterClient = new Twitter(twitterCreds.appInfo);
 
 sendSocket.bind(SEND_PORT);
 recieveSocket.bind(RECIEVE_PORT);
@@ -59,6 +62,22 @@ recieveSocket.on('message', function(message, remote){
 			//twitter upload happens here. At the end of the process, send the message and file
 			// back to the main application
 			io.sockets.to(messageValues.id).emit('transmit photo', messageValues.filename);
+			var imageFile = fs.readFileSync('../data/output/' + messageValues.filename); 
+			twitterClient.post('media/upload', {media: imageFile}, function(error, media, response){
+				if(!error){
+					console.log(media);
+
+					var status = {
+						status: twitterCreds.HASHTAG, 
+						media_ids: media.media_id_string
+					}
+					twitterClient.post('statuses/update', status, function(error, tweet, response){
+						if(!error){
+							console.log(tweet);
+						}
+					});
+				}
+			});
 			break;
 		case '/photo/countdown':
 			io.sockets.to(messageValues.id).emit('countdown timer', messageValues.filename);
@@ -73,7 +92,6 @@ app.use("/js", express.static(__dirname + '/js'));
 app.use("/css", express.static(__dirname + '/css'));
 //this should be the data folder for the oF app
 app.use("/img", express.static(__dirname + '/../data/output'));
-
 
 
 //websockets
