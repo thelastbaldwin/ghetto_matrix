@@ -12,6 +12,7 @@ var express = require('express'),
 	receiveSocket = dgram.createSocket({type:"udp4",reuseAddr:true}),
 	SEND_PORT = 12345,
 	RECIEVE_PORT = 12346,
+	fs = require('fs'),
 	Twitter = require('twitter'),
 	twitterCreds = require('./credentials'),
 	twitterClient = new Twitter(twitterCreds.appInfo);
@@ -73,7 +74,8 @@ receiveSocket.on('message', function(message, remote){
 					}
 					twitterClient.post('statuses/update', status, function(error, tweet, response){
 						if(!error){
-							console.log(tweet);
+							//would be cool to provide a link back to the last tweet
+							//console.log(tweet);
 						}
 					});
 				}

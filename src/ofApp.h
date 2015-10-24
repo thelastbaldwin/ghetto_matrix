@@ -20,7 +20,6 @@ class ofApp : public ofBaseApp{
         void sendPhoto(const string& filename, const string& id);
         void sendCountDown(const int& seconds, const string& id);
         void sendMessage(const string& message, const string& address,const string& id);
-        std::string takeTraditionalPhoto(const string& fileName, const string& id);
         std::string takeMatrixPhoto(const string& fileName, const string& id);
 
         std::vector<int> getCameraIds(std::string idString);
@@ -41,7 +40,6 @@ class ofApp : public ofBaseApp{
         ofxOscReceiver receiver;
         ofxOscSender sender;
 
-        CamThread* hMainCameraThread;
         CamThread* hCamThread1;
         CamThread* hCamThread2;
 

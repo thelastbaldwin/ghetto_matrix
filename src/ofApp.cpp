@@ -26,10 +26,6 @@ void ofApp::setup(){
     hCamThread2 = new CamThread(cam2Ids, 320, 240);
     hCamThread2->startThread();
 
-    std::vector<int> mainCameraIds = getCameraIds(settings.getValue("maincam"));
-    hMainCameraThread = new CamThread(mainCameraIds, 1024, 768);
-    hMainCameraThread->startThread();
-
     gifEncoder.setup(320, 240, 0.1);
     gifEncoder.start();
 
@@ -47,18 +43,9 @@ void ofApp::update(){
             std::string type = m.getArgAsString(0);
             std::string id = m.getArgAsString(1);
 
-
             if(type == "matrix"){
                 cout << "matrix requested" << endl;
                 takeMatrixPhoto("matrix-" + ofGetTimestampString("%m%d%Y-%H%M%s") + "_" + id + ".gif", id);
-            }else if(type == "traditional"){
-                //take a picture every time we get this message
-                //while we have less than 4 images, keep waiting
-                //once we have all the images, composite it and send it
-                //using sendMessage
-                cout << "traditional requested" << endl;
-                std::string fileName = takeTraditionalPhoto("traditional-" + ofGetTimestampString("%m%d%Y-%H%M%s") + ".jpg", id);
-                sendPhoto(fileName, id);
             }
 
 		}else{
@@ -89,55 +76,6 @@ void ofApp::draw(){
     return camIds;
  }
 
-
-std::string ofApp::takeTraditionalPhoto(const string& fileName, const string& id){
-    //this method takes 4 pictures, each after ~3 second day
-    //and composes them into a single 4-up image
-    ofFbo fbo;
-    fbo.allocate(1024 * 2, 768 * 2, GL_RGB);
-    ofImage currentFrame;
-    currentFrame.allocate(1024, 768, OF_IMAGE_COLOR);
-
-    fbo.begin();
-    //repeat 4 times
-    for(int i = 0; i < 4; ++i){
-        //wait 3 seconds
-        sendCountDown(3, id);
-        //should send the countdown
-
-        //takes 1 picture
-        hMainCameraThread->lock();
-        currentFrame.getPixelsRef() = hMainCameraThread->pixels[0];
-        hMainCameraThread->unlock();
-
-        currentFrame.reloadTexture();
-        //draw to fbo in correct quadrant
-        switch(i){
-            case 0:
-                currentFrame.draw(0, 0);
-                break;
-            case 1:
-                currentFrame.draw(1024, 0);
-                break;
-            case 2:
-                currentFrame.draw(0, 768);
-                break;
-            case 3:
-                currentFrame.draw(1024, 768);
-                break;
-        }
-    }
-    fbo.end();
-
-    //save the image in the fbo
-    ofImage finalImage;
-    finalImage.allocate(1024 * 2, 768 * 2, OF_IMAGE_COLOR);
-    fbo.readToPixels(finalImage.getPixelsRef());
-    finalImage.reloadTexture();
-    finalImage.saveImage(OUTPUT_PATH + fileName);
-
-    return fileName;
-}
 
 std::string ofApp::takeMatrixPhoto(const string& fileName, const string&){
     gifEncoder.reset();
@@ -200,10 +138,6 @@ void ofApp::onGifSaved(string &fileName) {
 void ofApp::keyPressed(int key){
     //just for testing, but might be useful for MANUAL OVERRIDE
     cout << key << endl;
-    if(key == 't'){
-        cout << "space pressed" << endl;
-        takeTraditionalPhoto("traditional - " + ofGetTimestampString("%m%d%Y-%H%M%s") + ".jpg", NULL);
-    }
     if(key == 'm'){
         cout << "m pressed" << endl;
         takeMatrixPhoto("matrix - " + ofGetTimestampString("%m%d%Y-%H%M%s") + ".gif", NULL);
@@ -244,9 +178,6 @@ void ofApp::sendMessage(const string& message, const string& address, const stri
 
 
 void ofApp::exit(){
-    hMainCameraThread->stopThread();
-    delete hMainCameraThread;
-
     hCamThread1->stopThread();
     delete hCamThread1;
 
