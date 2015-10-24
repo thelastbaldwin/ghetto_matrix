@@ -9,7 +9,6 @@ output/
 *.jpg
 *.jpeg
 node_modules/
-api_config.js
 
 *.cbp
 *.layout

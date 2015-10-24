@@ -17,7 +17,7 @@ var express = require('express'),
 	twitterClient = new Twitter(twitterCreds.appInfo);
 
 sendSocket.bind(SEND_PORT);
-recieveSocket.bind(RECIEVE_PORT);
+receiveSocket.bind(RECIEVE_PORT);
 
 function getOSCMessage(msg){
 	var oscMessage = osc.fromBuffer(msg);
@@ -55,13 +55,13 @@ function sendOSCMessage(photoType, socketId){
 	sendSocket.send(buffer, 0, buffer.length, SEND_PORT, 'localhost');
 }
 
-recieveSocket.on('message', function(message, remote){
+receiveSocket.on('message', function(message, remote){
 	var messageValues = getOSCMessage(message);
 	switch(messageValues.address){
 		case '/transmit/photo':
 			//twitter upload happens here. At the end of the process, send the message and file
 			// back to the main application
-			io.sockets.to(messageValues.id).emit('transmit photo', messageValues.filename);
+			io.sockets.to(messageValues.id).emit('transmit photo', 'output/' + messageValues.filename);
 			var imageFile = fs.readFileSync('../data/output/' + messageValues.filename); 
 			twitterClient.post('media/upload', {media: imageFile}, function(error, media, response){
 				if(!error){
@@ -91,7 +91,7 @@ recieveSocket.on('message', function(message, remote){
 app.use("/js", express.static(__dirname + '/js'));
 app.use("/css", express.static(__dirname + '/css'));
 //this should be the data folder for the oF app
-app.use("/img", express.static(__dirname + '/../data/output'));
+app.use("/img", express.static(__dirname + '/../data/'));
 
 
 //websockets
